@@ -45,6 +45,12 @@ router.post("/signup", async(req, res)=>{
  // Extracting the user ID from the created user
     const userId = user._id;
 
+// Create new account with some random account
+    await Account.create({
+        userId,
+        balance: Math.random() * 10000
+    })
+
  // Generating JWT token using the user ID and secret key
     const token = jwt.sign({
         userId
@@ -101,11 +107,41 @@ router.put("/" , authMiddleware , async(req,res)=>{
             message: "Error while updating information"
         })
     }
-    await User.updateOne(req.body,{
-        id: req.userId
-    })
+    await User.updateOne({
+        _id: req.userId
+    }, req.body)
     res.json({
         message: "Updated Successfully"
+    })
+})
+
+router.get("/bulk", async(req, res)=>{
+// If the "filter" parameter is not provided, it defaults to an empty string.
+    const filter = req.query.filter || "";
+
+// Find users in the database that match the specified filter criteria
+// MongoDB $regex operator: provides regular expression capabilities for pattern matching strings in queries
+// Search for users whose first or last name matches the provided filter using regular expression
+    const users = await User.find({
+        $or: [{
+            firstName: {
+                "$regex": filter
+            }
+        },{
+            lastName: {
+                "$regex": filter
+            }
+        }]
+    })
+
+// Respond with a JSON object containing user data, mapping each user object to a new object with a subset of properties
+    res.json({
+        user: users.map(user => ({
+            userName: user.username,
+            firstName: user.firstname,
+            lastName: user.lastname,
+            _id: user._id
+        }))
     })
 })
 
