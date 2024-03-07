@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
+const { DB_URL } = require("./config");
 
-mongoose.connect("mongodb+srv://bhavnagarg12ja:G%40rgBh%40vn%402129@cluster0.zdyihlz.mongodb.net/User")
+mongoose.connect(DB_URL);
 
 //creating schema for User table
 const userSchema = new mongoose.Schema({
@@ -32,6 +33,7 @@ const userSchema = new mongoose.Schema({
     }
 });
 
+//creating schema for account table
 const accountSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,

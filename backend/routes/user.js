@@ -11,7 +11,7 @@ const signupBody = zod.object({
     userName : zod.string().email(),
     firstName : zod.string(),
     lastName : zod.string(),
-    password : zos.string()
+    password : zod.string()
 })
 
 router.post("/signup", async(req, res)=>{
