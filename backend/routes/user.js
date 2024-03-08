@@ -2,45 +2,49 @@ const express = require("express");
 const zod = require("zod");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-const { User } = require("../db");
+const { User,Account } = require("../db");
 const { JWT_SECRET } = require("../config");
 const { authMiddleware } = require("../middleware");
 
 //signup API
 const signupBody = zod.object({
-    userName : zod.string().email(),
-    firstName : zod.string(),
-    lastName : zod.string(),
+    username : zod.string().email(),
+    firstname : zod.string(),
+    lastname : zod.string(),
     password : zod.string()
 })
 
 router.post("/signup", async(req, res)=>{
+   try{
     const { success } = signupBody.safeParse(req.body);
+    console.log(success)
     if(!success){
         return res.status(411).json({
-            message: "Email already taken / Incorrect inputs"
+            message: "Incorrect inputs"
         })
     }
 
      // Checking if the provided username (email) already exists in the database
     const existingUser = await User.findOne({
-        userName : req.body.username
+        username : req.body.username
     })
-
+    console.log(existingUser)
      // If user with the same email already exists
     if(existingUser){
         return res.status(411).json({
-            message: "Email already taken / Incorrect inputs"
+            message: "Email already taken"
         })
     }
     
     // Creating a new user in the database using the provided information
     const user = await User.create({
-        userName : req.body.username,
-        firstName : req.body.firstname,
-        lastName : req.body.lastname,
+        username : req.body.username,
+        firstname : req.body.firstname,
+        lastname : req.body.lastname,
         password : req.body.password
     });
+
+    console.log("user" + user)
 
  // Extracting the user ID from the created user
     const userId = user._id;
@@ -61,6 +65,9 @@ router.post("/signup", async(req, res)=>{
         message: "User created succesfully",
         token: token
     });
+   }catch(e){
+    console.log(e)
+   }
 })
 
 //signin api
@@ -69,6 +76,7 @@ const signInBody = zod.object({
 	password: zod.string()
 })
 router.post("/signin", async(req,res)=>{
+    try{
     const { success} = signInBody.safeParse(req.body);
     if(!success){
         return res.status(411).json({
@@ -76,7 +84,7 @@ router.post("/signin", async(req,res)=>{
         })
     }
     const user = await User.findOne({
-        userName : req.body.username,
+        username : req.body.username,
         password: req.body.password
     });
 
@@ -92,15 +100,19 @@ router.post("/signin", async(req,res)=>{
     res.status(411).json({
         message: "Error while logging in"
     })
+   }catch(e){
+    console.log(e);
+   }
 })
 
 //update api
 const updateBody = zod.object({
-	firstName: zod.string(),
-	lastName: zod.string(),
+	firstname: zod.string(),
+	lastname: zod.string(),
     password: zod.string()
 })
 router.put("/" , authMiddleware , async(req,res)=>{
+    try{
     const {success} = updateBody.safeParse(req.body);
     if(!success){
         res.status(411).json({
@@ -113,6 +125,9 @@ router.put("/" , authMiddleware , async(req,res)=>{
     res.json({
         message: "Updated Successfully"
     })
+    }catch(e){
+        console.log(e);
+    }
 })
 
 router.get("/bulk", async(req, res)=>{
@@ -124,11 +139,11 @@ router.get("/bulk", async(req, res)=>{
 // Search for users whose first or last name matches the provided filter using regular expression
     const users = await User.find({
         $or: [{
-            firstName: {
+            firstname: {
                 "$regex": filter
             }
         },{
-            lastName: {
+            lastname: {
                 "$regex": filter
             }
         }]
@@ -137,9 +152,9 @@ router.get("/bulk", async(req, res)=>{
 // Respond with a JSON object containing user data, mapping each user object to a new object with a subset of properties
     res.json({
         user: users.map(user => ({
-            userName: user.username,
-            firstName: user.firstname,
-            lastName: user.lastname,
+            username: user.username,
+            firstname: user.firstname,
+            lastname: user.lastname,
             _id: user._id
         }))
     })

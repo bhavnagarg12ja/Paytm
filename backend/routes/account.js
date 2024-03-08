@@ -1,8 +1,10 @@
 const express = require("express");
 const { authMiddleware } = require("../middleware");
+const { Account } = require("../db");
 const { default: mongoose } = require("mongoose");
 const router = express.Router();
 
+// An endpoint for user to get their balance.
 router.get("/balance", authMiddleware, async(req, res)=>{
     // Find the account associated with the authenticated user in the database
     const account = await Account.findOne({
@@ -15,6 +17,7 @@ router.get("/balance", authMiddleware, async(req, res)=>{
     })
 })
 
+// An endpoint for user to transfer money to another account
 router.post("/transfer", authMiddleware, async(req, res)=>{
     let session; // Declare a variable to store the session
 try{
