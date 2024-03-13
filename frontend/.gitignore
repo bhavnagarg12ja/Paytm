@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Express.js
+.env
+# React.js
+/build
+.npm
